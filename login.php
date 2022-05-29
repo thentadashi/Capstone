@@ -1,139 +1,125 @@
- <?php
- require_once ("include/initialize.php"); 
- if (@$_GET['page'] <= 2 or @$_GET['page'] > 5) {
-  # code...
-    // unset($_SESSION['PRODUCTID']);
-    // // unset($_SESSION['QTY']);
-    // // unset($_SESSION['TOTAL']);
-} 
+<?php
+require_once("../include/initialize.php");
 
+ ?>
+  <?php
+ // login confirmation
+  if(isset($_SESSION['USERID'])){
+    redirect(web_root."admin/index.php");
+  }
+  ?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Login | Admin</title>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+<!--===============================================================================================-->	
+	<link rel="icon" type="image/png" href="images/icons/favicon.ico"/>
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="vendor/bootstrap/css/bootstrap.min.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="fonts/font-awesome-4.7.0/css/font-awesome.min.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="fonts/Linearicons-Free-v1.0.0/icon-font.min.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="vendor/animate/animate.css">
+<!--===============================================================================================-->	
+	<link rel="stylesheet" type="text/css" href="vendor/css-hamburgers/hamburgers.min.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="vendor/select2/select2.min.css">
+<!--===============================================================================================-->
+	<link rel="stylesheet" type="text/css" href="css/util.css">
+	<link rel="stylesheet" type="text/css" href="css/mainv2.css">
+<!--===============================================================================================-->
+</head>
+<body>
+	<div class="limiter" >
+		<div class="container-login100">
 
+			<div class="wrap-login100">
+				<form method="post" action=""  class="login100-form validate-form" >
+
+					<div class="login100-form-avatar">
+
+						<img src="images/av.png" alt="AVATAR">
+					</div>
+
+					<span class="login100-form-title p-t-5 p-b-7" style="color: #111;">
+						Admin Login
+					</span>
+
+				 	<?php echo check_message(); ?>
+					<div class="wrap-input100 validate-input m-b-10" data-validate = "Username is required">
+						<input class="input100" type="text"  name="user_email"  placeholder="Username">
+						<span class="focus-input100"></span>
+						<span class="symbol-input100">
+							<i class="fa fa-user"></i>
+						</span>
+					</div>
+
+					<div class="wrap-input100 validate-input m-b-10" data-validate = "Password is required">
+						<input class="input100" type="password" name="user_pass" placeholder="Password">
+						<span class="focus-input100"></span>
+						<span class="symbol-input100">
+							<i class="fa fa-lock"></i>
+						</span>
+					</div>
+
+					<div class="container-login100-form-btn p-t-10">
+						<button  type="submit" name="btnLogin"  class="login100-form-btn">
+							Login
+						</button>
+					</div>
  
-if(isset($_POST['sidebarLogin'])){
-  $email = trim($_POST['U_USERNAME']);
-  $upass  = trim($_POST['U_PASS']);
+				</form>
+			</div>
+		</div>
+	</div>
+	
+	
+
+	
+<!--===============================================================================================-->	
+	<script src="vendor/jquery/jquery-3.2.1.min.js"></script>
+<!--===============================================================================================-->
+	<script src="vendor/bootstrap/js/popper.js"></script>
+	<script src="vendor/bootstrap/js/bootstrap.min.js"></script>
+<!--===============================================================================================-->
+	<script src="vendor/select2/select2.min.js"></script>
+<!--===============================================================================================-->
+	<script src="js/main.js"></script>
+
+</body>
+</html>
+
+<?php 
+
+if(isset($_POST['btnLogin'])){
+  $email = trim($_POST['user_email']);
+  $upass  = trim($_POST['user_pass']);
   $h_upass = sha1($upass);
   
    if ($email == '' OR $upass == '') {
-
-      message("Invalid Username and Password!", "error");
-      redirect(web_root."index.php");
+      echo '<script> alert("Invalid Username and Password!");</script>';
+            header('refresh:0;url=login.php');
          
-    } else {   
-        $cus = new Customer();
-        $cusres = $cus::cusAuthentication($email,$h_upass);
-
-        if ($cusres==true){
-
-
-           redirect(web_root."index.php");
-        }else{
-             message("Invalid Username and Password! Please contact administrator", "error");
-             redirect(web_root."index.php");
-        }
- 
+    } else {  
+  //it creates a new objects of member
+    $user = new User();
+    //make use of the static function, and we passed to parameters
+    $res = $user::userAuthentication($email, $h_upass);
+    if ($res==true) { 
+       message("You logon as ".$_SESSION['U_ROLE'].".","success");
+      if ($_SESSION['U_ROLE']=='Administrator'){
+         redirect(web_root."admin/index.php");
+      }else{
+           redirect(web_root."admin/login.php");
+      }
+    }else{
+             echo '<script> alert("Account does not exist! Please contact Administrator.");</script>';
+           redirect(web_root."admin/login.php");
+    }
  }
-
-}
-
-$captchaSiteKey = '6LcpK0seAAAAAM9IMegi_-i2Sn-J2nEuC3NSe6pJ';
-$captchaSecretKey = '6LcpK0seAAAAAEUgyRPN8j-T2gD774qLRN4G1nzv';
-
-function curlRequest($url)
-{
-    $ch = curl_init();
-    $getUrl = $url;
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, FALSE);
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, TRUE);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, TRUE);
-    curl_setopt($ch, CURLOPT_URL, $getUrl);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 80);
-    
-    $response = curl_exec($ch);
-    return $response;
-    
-    curl_close($ch);
-    
-}
-
-
-
-
-
- if(isset($_POST['modalLogin'],$_POST['g-recaptcha-response']))
-{
-
-        $createGoogleUrl = 'https://www.google.com/recaptcha/api/siteverify?secret='.$captchaSecretKey.'&response='.$_POST['g-recaptcha-response'];
-        $verifyRecaptcha = curlRequest($createGoogleUrl);
-        $decodeGoogleResponse = json_decode($verifyRecaptcha,true);
- 
-        if($decodeGoogleResponse['success'] == 1)
-        {
-          $email = trim($_POST['U_USERNAME']);
-          $upass  = trim($_POST['U_PASS']);
-          $h_upass = sha1($upass);  
-
-            if ($email == '' OR $upass == '') 
-                { 
-                  echo "<script> alert('Please Type Email and Password');</script>";
-                  echo "<script> window.location='index.php?page6';</script>";
-
-                }else{
-
-                            $cus = new Customer();
-                            $cusres = $cus::cusAuthentication($email,$h_upass);
-
-                            if ($cusres==true){
-
-                        $conn = mysqli_connect('localhost', 'root', '', 'db_ecommerce');
-                        $email = mysqli_real_escape_string($conn, $_POST['U_USERNAME']);
-                        $check_email = "SELECT * FROM tblcustomer WHERE EMAILADD = '$email'";
-                        $res = mysqli_query($conn, $check_email);
-                        $fetch = mysqli_fetch_assoc($res);
-                        $status = $fetch['status'];
-                        if($status == 'verified'){
-
-
-
-
-
-
-                               if($_POST['proid']==''){
-                                redirect(web_root."index.php");
-                               }else{
-                                  $proid = $_POST['proid'];
-                                  $id = mysql_insert_id(); 
-                                  $query ="INSERT INTO `tblwishlist` (`PROID`, `CUSID`, `WISHDATE`, `WISHSTATS`)  VALUES ('". $proid."','".$_SESSION['CUSID']."','".DATE('Y-m-d')."',0)";
-                                  mysql_query($query) or die(mysql_error());
-                                  redirect(web_root."index.php?q=profile");
-                                 }
-                                                        }else{
-
-                                $info = "It's look like you haven't still verify your email - $email";
-                                $_SESSION['info'] = $info;
-                                  echo "<script> alert('You need to Verify your Email');</script>";
-                                  redirect(web_root."index.php?q=verify");
-
-                        }
-
-                             
-                            }else{
-
-                                echo "<script> alert('Incorrect Email or Password!');</script>";
-                                  echo "<script> window.location='index.php';</script>";
-                                 }
- 
-                }
-        }
-
-        else{
-                      echo "<script> alert('Error! validating Recaptcha');</script>";
-                      echo "<script> window.location='index.php?page6';</script>";
-                         
-            }
- }
-
-
-
-
-    
+ } 
+ ?> 
